@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Itinerary Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+  <!-- Leaflet Routing Machine CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+
+  <!-- Leaflet Awesome Markers for nice colored icons -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.awesome-markers/dist/leaflet.awesome-markers.css">
+  
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .header {
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .total-time {
+      color: #7f8c8d;
+      margin: 10px 0 0 0;
+      font-size: 16px;
+    }
+
+    #map {
+      height: 80vh;
+      width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .legend {
+      background: white;
+      padding: 12px 15px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      line-height: 1.5;
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      z-index: 1000;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #34495e;
+    }
+
+    .legend-color {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      margin-right: 8px;
+      display: inline-block;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .legend-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2c3e50;
+      font-size: 16px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .header {
+        padding: 15px;
+      }
+
+      h2 {
+        font-size: 20px;
+      }
+
+      .legend {
+        padding: 10px;
+        font-size: 12px;
+      }
+
+      .legend-item {
+        margin-bottom: 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>{{ city.name }} - {{ days }} Day Itinerary</h2>
+    <p class="total-time">Total Estimated Time: {{ total_hours }} hrs</p>
+  </div>
+  
+  <!-- Map container -->
+  <div id="map"></div>
+
+  <!-- Legend to explain marker colors -->
+  <div class="legend">
+    <div class="legend-title">Legend</div>
+    <div class="legend-item">
+      <span class="legend-color" style="background: green;"></span>
+      <span>Start Point</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color" style="background: blue;"></span>
+      <span>Intermediate Stops</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color" style="background: red;"></span>
+      <span>End Point</span>
+    </div>
+    <!-- For a 2-day itinerary, we also show route colors: -->
+    {% if days == 2 %}
+    <div class="legend-item">
+      <span class="legend-color" style="background: red; border: 2px solid red;"></span>
+      <span>Day 1 Route</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color" style="background: blue; border: 2px solid blue;"></span>
+      <span>Day 2 Route</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Traffic Legend Box -->
+<!-- Traffic Legend Box (RIGHT SIDE) -->
+<div id="traffic-legend" style="
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  background: white;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 8px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  z-index: 1000;
+  line-height: 1.5;
+  width: 160px;
+">
+  <h4 style="margin-top: 0; font-size: 16px;">Traffic Legend</h4>
+  <div><span style="display:inline-block;width:15px;height:15px;background:green;margin-right:8px;border:1px solid #ccc;"></span> Smooth Traffic</div>
+  <div><span style="display:inline-block;width:15px;height:15px;background:yellow;margin-right:8px;border:1px solid #ccc;"></span> Moderate Traffic</div>
+  <div><span style="display:inline-block;width:15px;height:15px;background:red;margin-right:8px;border:1px solid #ccc;"></span> Heavy Traffic</div>
+</div>
+
+
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine JS -->
+  <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+  <!-- Leaflet Awesome Markers JS -->
+  <script src="https://unpkg.com/leaflet.awesome-markers/dist/leaflet.awesome-markers.js"></script>
+
+  <script>
+    // Build the places array from Django context
+    const places = [
+      {% for loc in locations %}
+      {
+        name: "{{ loc.name|escapejs }}",
+        lat: {{ loc.latitude }},
+        lng: {{ loc.longitude }},
+        hours: {{ loc.duration_hours|floatformat:1 }}
+      },
+      {% endfor %}
+    ];
+
+    // Use the first location as the map center (it exists if at least one destination is selected)
+   // Initialize the map centered on the first location
+   const map = L.map('map', {
+    center: [places[0].lat, places[0].lng],
+    zoom: 13
+});
+
+// Define tile layers
+const baseMap = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+});
+
+const trafficLayer = L.tileLayer(
+  'https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?key=bA3GG68PzWmgrOIQLJsU1beAVMpGcSnp',
+  {
+    maxZoom: 22,
+    opacity: 0.8,
+    attribution: 'Traffic data &copy; <a href="https://developer.tomtom.com/">TomTom</a>'
+  }
+);
+
+// Add default base map first
+baseMap.addTo(map);
+
+// Layer control for switching between normal map and traffic
+L.control.layers(
+  { "OpenStreetMap": baseMap },
+  { "Live Traffic": trafficLayer }
+).addTo(map);
+
+// ---------------- Add your Itinerary Markers -------------------
+
+const startIcon = L.AwesomeMarkers.icon({
+  icon: 'play',
+  markerColor: 'green',
+  prefix: 'fa'
+});
+
+const endIcon = L.AwesomeMarkers.icon({
+  icon: 'flag-checkered',
+  markerColor: 'red',
+  prefix: 'fa'
+});
+
+const defaultIcon = L.AwesomeMarkers.icon({
+  icon: 'map-marker',
+  markerColor: 'blue',
+  prefix: 'fa'
+});
+
+places.forEach((place, index) => {
+  let icon = defaultIcon;
+  let popupText = "<b>" + place.name + "</b><br>Visit Time: " + place.hours + " hrs";
+
+  if (index === 0) {
+    icon = startIcon;
+    popupText = "<b>Start: " + place.name + "</b><br>Visit Time: " + place.hours + " hrs";
+  } else if (index === places.length - 1) {
+    icon = endIcon;
+    popupText = "<b>End: " + place.name + "</b><br>Visit Time: " + place.hours + " hrs";
+  }
+
+  L.marker([place.lat, place.lng], {icon: icon})
+    .addTo(map)
+    .bindPopup(popupText);
+});
+
+// ---------------- Add your Routing Path -------------------
+
+const itineraryDays = {{ days }};
+
+if (itineraryDays === 2) {
+  const midIndex = Math.ceil(places.length / 2);
+  const dayOnePlaces = places.slice(0, midIndex);
+  const dayTwoPlaces = places.slice(midIndex);
+
+  const dayOneWaypoints = dayOnePlaces.map(p => L.latLng(p.lat, p.lng));
+  const dayTwoWaypoints = dayTwoPlaces.map(p => L.latLng(p.lat, p.lng));
+
+  L.Routing.control({
+    waypoints: dayOneWaypoints,
+    routeWhileDragging: false,
+    show: false,
+    lineOptions: { styles: [{ color: 'red', weight: 5 }] },
+    createMarker: () => null
+  }).addTo(map);
+
+  L.Routing.control({
+    waypoints: dayTwoWaypoints,
+    routeWhileDragging: false,
+    show: false,
+    lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
+    createMarker: () => null
+  }).addTo(map);
+
+} else {
+  const waypoints = places.map(p => L.latLng(p.lat, p.lng));
+  L.Routing.control({
+    waypoints: waypoints,
+    routeWhileDragging: false,
+    show: false,
+    lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
+    createMarker: () => null
+  }).addTo(map);
+}
+
+  </script>
+</body>
+</html>

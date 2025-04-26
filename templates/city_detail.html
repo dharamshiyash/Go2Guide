@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City - Go2Guide</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/destinations.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <a href="../../index.html">Go2Guide</a>
+            </div>
+            <div class="nav-links">
+                <ul>
+                    <li><a href="/home">Home</a></li>
+                    <li><a href="/d" class="active">Destinations</a></li>
+                    <li><a href="/about-us">About Us</a></li>
+                </ul>
+            </div>
+            <div class="auth-links">
+                <a href="../auth/login.html" class="btn btn-login">Login</a>
+                <a href="../auth/signup.html" class="btn btn-signup">Sign Up</a>
+            </div>
+            <div class="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="city-header">
+            {% for n in City_detail %}
+            <div class="city-header-img">
+                <img src="/media/{{ n.image }}" alt="{{City.image}}">
+            </div>
+            <div class="city-header-content">
+                <h1>{{n.name}}</h1>
+                <p>City description will be loaded dynamically</p>
+            </div>
+            {% endfor %}
+        </section>
+        <div class="itinerary-form">
+            {% for n in City_detail %}
+            <h3>Plan Your Trip</h3>
+            <form action="/generate_itinerary/" method="get">
+                <label for="days">Select Trip Duration:</label>
+                <select name="days" id="days">
+                    <option value="1">1 Day</option>
+                    <option value="2">2 Days</option>
+                </select>
+                <input type="hidden" name="city" value="{{ n.name }}">  <!-- Assuming you're passing city ID -->
+                <button type="submit" class="btn">Generate Itinerary</button>
+            </form>
+            {% endfor %}
+        </div>
+
+        <section class="city-locations">
+            <div class="section-header">
+                <h2>Explore Destinations</h2>
+                <p>Discover the best places to visit in this city</p>
+            </div>
+            
+            
+            <div class="location-grid">
+                <div class="location-grid">
+                    {% for m in Location %}
+                    <a href="/location_detail/{{ m.name }}" class="location-card">
+                        <img src="/media/{{ m.image }}" alt="{{ m.name }}">
+                        <h1>{{ m.name }}</h1>
+                    </a>
+                    {% endfor %}
+                </div>
+                
+                <!-- Location cards will be dynamically loaded here -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <h2>Go2Guide</h2>
+                <p>Your Ultimate Travel Companion</p>
+            </div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="/home">Home</a></li>
+                        <li><a href="/d">Destinations</a></li>
+                        <li><a href="/about-us">About Us</a></li>
+                        <li><a href="/">Login</a></li>
+                        <li><a href="/register">Sign Up</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Categories</h3>
+                    <ul>
+                        <li><a href="/category_detail/Mountains">Mountains</a></li>
+                        <li><a href="/category_detail/Beaches">Beaches</a></li>
+                        <li><a href="/category_detail/Cities">Cities</a></li>
+                        
+                        <li><a href="/category_detail/Historical Sites">Historical Sites</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> info@go2guide.com</li>
+                        <li><i class="fas fa-phone"></i> +1 (555) 123-4567</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Travel Street, Adventure City</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Go2Guide. All rights reserved.</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook-f"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-pinterest"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/script.js"></script>
+    <script src="/static/js/destinations.js"></script>
+</body>
+</html>
