@@ -1,5 +1,37 @@
 // Toggle password visibility
 document.addEventListener('DOMContentLoaded', () => {
+    const slideshowContainer = document.querySelector('.background-slideshow');
+    if (slideshowContainer) {
+        const images = [
+            '/media/images/image1.jpeg',
+            '/media/images/image2.jpeg',
+            '/media/images/image3.jpg',
+            '/media/images/image4.jpeg',
+            '/media/images/image5.jpeg'
+        ];
+
+        // Create and append images
+        images.forEach((src, index) => {
+            const img = document.createElement('img');
+            img.src = src;
+            img.alt = `Background ${index + 1}`;
+            if (index === 0) img.classList.add('active');
+            slideshowContainer.appendChild(img);
+        });
+
+        // Slideshow functionality
+        let currentIndex = 0;
+        const slides = slideshowContainer.querySelectorAll('img');
+
+        function nextSlide() {
+            slides[currentIndex].classList.remove('active');
+            currentIndex = (currentIndex + 1) % slides.length;
+            slides[currentIndex].classList.add('active');
+        }
+
+        // Change slide every 5 seconds
+        setInterval(nextSlide, 5000);
+    }
     const togglePasswordButtons = document.querySelectorAll('.toggle-password');
     
     togglePasswordButtons.forEach(button => {
