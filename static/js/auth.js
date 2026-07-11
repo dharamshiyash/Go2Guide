@@ -1,5 +1,6 @@
 // Toggle password visibility
 document.addEventListener('DOMContentLoaded', () => {
+    
     const slideshowContainer = document.querySelector('.background-slideshow');
     if (slideshowContainer) {
         const images = [
